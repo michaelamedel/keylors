@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KEYLORS — Where Sound Becomes Color</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #05040a;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        /* ===== LANDING PAGE ===== */
+        .landing {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(135deg, #05040a 0%, #1a0828 100%);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .landing.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+        
+        .landing h1 {
+            font-size: 72px;
+            font-weight: normal;
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 40px rgba(139, 92, 246, 0.4); }
+            to { text-shadow: 0 0 60px rgba(139, 92, 246, 0.8); }
+        }
+        
+        .landing p {
+            font-size: 18px;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 50px;
+        }
+        
+        .landing-buttons {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .landing-btn {
+            padding: 16px 40px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .landing-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+        
+        /* ===== ABOUT PAGE ===== */
+        .about-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #05040a 0%, #1a0828 100%);
+            z-index: 99;
+            overflow-y: auto;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+        
+        .about-page.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .about-content {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 40px;
+        }
+        
+        .about-content h2 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+        
+        .about-content p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 24px;
+        }
+        
+        .about-content .highlight {
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border-left: 3px solid rgba(139, 92, 246, 0.8);
+        }
+        
+        .back-btn {
+            margin-top: 40px;
+            padding: 12px 32px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* ===== CANVAS ===== */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* ===== EXPLORE UI ===== */
+        .explore-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease 0.5s;
+        }
+        
+        .explore-ui.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            pointer-events: all;
+        }
+        
+        .home-btn {
+            background: rgba(5, 4, 10, 0.8);
+            padding: 12px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: all;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .mode-toggle {
+            background: rgba(5, 4, 10, 0.8);
+            padding: 12px 24px;
+            border-radius: 50px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 12px;
+        }
+        
+        .mode-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #fff;
+        }
+        
+        .info-toggle {
+            background: rgba(5, 4, 10, 0.8);
+            padding: 12px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            pointer-events: all;
+        }
+        
+        .info-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Current Key Display */
+        .current-key {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            text-align: right;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .current-key .key-name {
+            font-size: 56px;
+            font-weight: normal;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        }
+        
+        .current-key .palette-name {
+            font-size: 20px;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .current-key .key-type {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 4px;
+        }
+        
+        /* Circular Key Selector */
+        .key-circle {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            width: 500px;
+            height: 500px;
+            pointer-events: all;
+        }
+        
+        .key-dot {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .key-dot:hover {
+            transform: scale(1.5) translateY(-4px) !important;
+            border-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.7), 0 0 60px currentColor;
+            filter: brightness(1.3);
+        }
+        
+        .key-dot.active {
+            transform: scale(1.7) !important;
+            border-width: 3px;
+            border-color: #fff;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.9), 0 0 80px currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.9), 0 0 80px currentColor; }
+            50% { box-shadow: 0 0 60px rgba(255, 255, 255, 1), 0 0 120px currentColor; }
+        }
+        
+        .key-label {
+            position: absolute;
+            font-size: 13px;
+            white-space: nowrap;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* Guided Journey Panel */
+        .journey-panel {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(5, 4, 10, 0.85);
+            padding: 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 320px;
+            pointer-events: all;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+        
+        .journey-panel.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .journey-panel h3 {
+            font-size: 18px;
+            font-weight: normal;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .journey-option {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .journey-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .journey-option h4 {
+            font-size: 15px;
+            font-weight: normal;
+            margin-bottom: 4px;
+        }
+        
+        .journey-option p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+        }
+        
+        /* Custom Color Panel */
+        .custom-panel {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            background: rgba(5, 4, 10, 0.85);
+            padding: 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            pointer-events: all;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+        
+        .custom-panel.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        /* Color Blend Panel */
+        .blend-panel {
+            position: absolute;
+            top: 120px;
+            right: 30px;
+            background: rgba(5, 4, 10, 0.9);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 280px;
+            pointer-events: all;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+        
+        .blend-panel.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .blend-panel h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .blend-panel p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+        
+        .blend-slots {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .blend-slot {
+            aspect-ratio: 1;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .blend-slot:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .blend-slot.filled {
+            border-style: solid;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .blend-slot .placeholder {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .blend-slot .key-label-small {
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .blend-slot .remove-slot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .blend-slot:hover .remove-slot {
+            opacity: 1;
+        }
+        
+        .blend-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .blend-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .blend-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .blend-btn.primary {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            border: none;
+        }
+        
+        .blend-btn.primary:hover {
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+        
+        .custom-panel h3 {
+            font-size: 16px;
+            font-weight: normal;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+        }
+        
+        .custom-panel p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .color-picker-row label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 60px;
+        }
+        
+        .color-picker-row input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .custom-toggle-btn {
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Chord Progression Builder */
+        .progression-panel {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            background: rgba(5, 4, 10, 0.9);
+            padding: 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            max-width: 400px;
+            pointer-events: all;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+        }
+        
+        .progression-panel.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .progression-panel h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+        
+        .progression-display {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .progression-chip {
+            background: linear-gradient(135deg, var(--chip-color-1), var(--chip-color-2));
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .progression-chip .remove {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .progression-chip .remove:hover {
+            opacity: 1;
+        }
+        
+        .progression-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .progression-btn {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .progression-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .progression-btn.primary {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+            border: none;
+        }
+        
+        .progression-btn.primary:hover {
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .landing h1 { font-size: 48px; }
+            .current-key .key-name { font-size: 36px; }
+            .key-circle { width: 300px; height: 300px; }
+            .journey-panel, .custom-panel, .progression-panel { 
+                left: 20px;
+                right: 20px;
+                max-width: calc(100% - 40px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Landing Page -->
+    <div class="landing" id="landing">
+        <h1>KEYLORS</h1>
+        <p>where sound becomes color</p>
+        <div class="landing-buttons">
+            <button class="landing-btn" onclick="enterExplore()">Explore Palette</button>
+            <button class="landing-btn" onclick="showAbout()">About Synesthesia</button>
+        </div>
+    </div>
+    
+    <!-- About Page -->
+    <div class="about-page" id="about-page">
+        <div class="about-content">
+            <h2>Synesthetic Perception</h2>
+            <p>
+                Music has always appeared to me in color. Each key signature carries its own hue, 
+                its own emotional weight—some vibrant and shiny, others darker and rich. This is 
+                not metaphor or association; it is involuntary perception, a crossing of senses 
+                where sound becomes visible.
+            </p>
+            <p>
+                Major keys shimmer with brightness and clarity, manifesting as lighter, more 
+                energetic particles that flow and ribbon across my inner vision. Minor keys pulse 
+                with depth and complexity, appearing as denser, slower forms—ink blots spreading 
+                through water, shadows with weight.
+            </p>
+            <div class="highlight">
+                <p style="margin: 0;">
+                    "What starts as a technical demo gradually unfolds a staged interaction, where 
+                    color, language, and motion collide, mirroring the uncertainty of how music is 
+                    felt rather than how it is labeled or understood."
+                </p>
+            </div>
+            <p>
+                KEYLORS explores the limits of visualization and the instability of meaning when 
+                internal sensory experiences are externalized. It began as a generative system 
+                mapping musical keys to color palettes, but evolved into something more—a space 
+                to hold contradiction, between instinct and language, between internal sensation 
+                and external representation.
+            </p>
+            <p>
+                This project is inspired by the tension I experience: when a song's title, album 
+                art, and lyrical imagery suggest one color, but the music itself registers as 
+                another entirely. The contradiction is never resolved—it simply exists, like 
+                synesthesia itself.
+            </p>
+            <button class="back-btn" onclick="hideAbout()">← Return</button>
+        </div>
+    </div>
+    
+    <!-- Canvas -->
+    <div id="canvas-container"></div>
+    
+    <!-- Explore UI -->
+    <div class="explore-ui" id="explore-ui">
+        <div class="top-bar">
+            <button class="home-btn" onclick="goHome()">← Home</button>
+            <div class="mode-toggle">
+                <button class="mode-btn active" onclick="setMode('free')">Free Explore</button>
+                <button class="mode-btn" onclick="setMode('guided')">Guided Journey</button>
+                <button class="mode-btn" onclick="setMode('progression')">Chord Builder</button>
+            </div>
+            <button class="info-toggle" onclick="toggleCustom()">
+                Create Your Keylors!
+            </button>
+            <button class="info-toggle" onclick="toggleBlend()">
+                Blend Colors
+            </button>
+        </div>
+        
+        <div class="current-key">
+            <div class="key-name" id="key-display">Eb major</div>
+            <div class="palette-name" id="palette-display">euphoric purple</div>
+            <div class="key-type" id="key-type">vibrant & shiny</div>
+        </div>
+        
+        <div class="key-circle" id="key-circle"></div>
+        
+        <div class="journey-panel" id="journey-panel">
+            <h3>Journeys Through Time</h3>
+            <div class="journey-option" onclick="startJourney('dawn')">
+                <h4>Sunrise to Sunset</h4>
+                <p>From midnight blue to golden warmth</p>
+            </div>
+            <div class="journey-option" onclick="startJourney('twilight')">
+                <h4>Dusk to Dawn</h4>
+                <p>Warm glow fading into cool night</p>
+            </div>
+            <div class="journey-option" onclick="startJourney('spectrum')">
+                <h4>Through the Seasons</h4>
+                <p>A full cycle of color and mood</p>
+            </div>
+        </div>
+        
+        <div class="custom-panel" id="custom-panel">
+            <h3>Create Your Keylors!</h3>
+            <p>Map your own synesthetic colors for each key.</p>
+            <div id="custom-colors"></div>
+            <button class="custom-toggle-btn" onclick="resetToOriginal()">Reset to Original</button>
+        </div>
+        
+        <div class="blend-panel" id="blend-panel">
+            <h3>Blend Colors</h3>
+            <p>Combine up to 4 keys to create unique color blends</p>
+            <div class="blend-slots" id="blend-slots">
+                <div class="blend-slot" onclick="addBlendSlot(0)">
+                    <span class="placeholder">+ Key 1</span>
+                </div>
+                <div class="blend-slot" onclick="addBlendSlot(1)">
+                    <span class="placeholder">+ Key 2</span>
+                </div>
+                <div class="blend-slot" onclick="addBlendSlot(2)">
+                    <span class="placeholder">+ Key 3</span>
+                </div>
+                <div class="blend-slot" onclick="addBlendSlot(3)">
+                    <span class="placeholder">+ Key 4</span>
+                </div>
+            </div>
+            <div class="blend-controls">
+                <button class="blend-btn" onclick="clearBlend()">Clear</button>
+                <button class="blend-btn primary" onclick="activateBlend()">Blend!</button>
+            </div>
+        </div>
+        
+        <div class="progression-panel" id="progression-panel">
+            <h3>Build Your Chord Progression</h3>
+            <p style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 12px;">
+                Click keys to add them to your progression (up to 8 keys)
+            </p>
+            <div class="progression-display" id="progression-display">
+                <span style="color: rgba(255, 255, 255, 0.4); font-size: 13px;">Your progression will appear here...</span>
+            </div>
+            <div class="progression-controls">
+                <button class="progression-btn" onclick="clearProgression()">Clear</button>
+                <button class="progression-btn primary" onclick="playProgression()">Play Progression</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Complete palette with all keys
+        let originalPalettes = [
+            // Purples - dominant, deep, emotional
+            { key: 'Eb major', name: 'euphoric purple', cols: ["#D79AED", "#8437AB", "#481166"], major: true },
+            { key: 'C minor', name: 'violet depth', cols: ["#3D2B8C", "#5E17EB", "#8E5CFF"], major: false },
+            { key: 'F minor', name: 'purple shadow', cols: ["#2D1B4E", "#5E17EB", "#7B2CBF"], major: false },
+            
+            // Reds - passionate, intense
+            { key: 'E minor', name: 'crimson shadow', cols: ["#1a0a14", "#590d22", "#c9184a"], major: false },
+            
+            // Oranges & Ambers - warm, glowing
+            { key: 'E major', name: 'amber dusk', cols: ["#FFB703", "#FB8500", "#FFA500"], major: true },
+            { key: 'A major', name: 'burnt amber', cols: ["#ff9e00", "#ff7b00", "#e85d04"], major: true },
+            { key: 'B minor', name: 'orange ember', cols: ["#D4600D", "#E85D04", "#DC2F02"], major: false },
+            
+            // Yellows - bright, energetic
+            { key: 'B major', name: 'golden sunrise', cols: ["#FFE66D", "#FFEB3B", "#FDD835"], major: true },
+            
+            // Greens & Creams - peaceful, natural
+            { key: 'D major', name: 'cream dawn', cols: ["#FFF8E7", "#F5E6D3", "#E8D5C4"], major: true },
+            { key: 'G major', name: 'daylight green', cols: ["#80ED99", "#57CC99", "#38B000"], major: true },
+            { key: 'G minor', name: 'indigo dusk', cols: ["#1B2845", "#274C77", "#6096BA"], major: false },
+            
+            // Blues - cool, expansive
+            { key: 'C major', name: 'crystal sky', cols: ["#90E0EF", "#00B4D8", "#0096C7"], major: true },
+            { key: 'F major', name: 'royal blue', cols: ["#5E60CE", "#5390D9", "#4EA8DE"], major: true },
+            { key: 'A minor', name: 'faded azure', cols: ["#2C3E50", "#34495E", "#5DADE2"], major: false },
+            { key: 'D minor', name: 'midnight blue', cols: ["#1B2845", "#2C3E50", "#34495E"], major: false },
+            
+            // Magentas - mystical, complex
+            { key: 'Ab major', name: 'magenta dream', cols: ["#FF006E", "#D90368", "#FB5607"], major: true },
+            
+            // Golds - rich, luxurious
+            { key: 'C# minor', name: 'warm gold', cols: ["#8B6914", "#B8860B", "#DAA520"], major: false }
+        ];
+
+        let palettes = JSON.parse(JSON.stringify(originalPalettes));
+        
+        let currentIndex = 0;
+        let streams = [];
+        let mix = 1;
+        let mixing = false;
+        let fromPalette, toPalette;
+        let currentMode = 'free';
+        let journeyActive = false;
+        let journeyIndex = 0;
+        let journeySequence = [];
+        let shimmerBoost = 0;
+        let customActive = false;
+        let progression = [];
+        let progressionPlaying = false;
+        let swirls = [];
+        let explosions = [];
+        let blendMode = false;
+        let blendSlots = [null, null, null, null];
+        let waitingForBlendSlot = -1;
+
+        const STREAM_COUNT = 18;
+        const SWIRL_COUNT = 8;
+
+        function setup() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('canvas-container');
+            noStroke();
+            
+            fromPalette = palettes[0];
+            toPalette = palettes[0];
+            
+            for (let i = 0; i < STREAM_COUNT; i++) {
+                streams.push(new Stream(i));
+            }
+            
+            for (let i = 0; i < SWIRL_COUNT; i++) {
+                swirls.push(new Swirl(i));
+            }
+        }
+
+        function draw() {
+            // RICH solid background - no trails, pure vibrant color
+            const bgCol = computeBackgroundColor();
+            noStroke();
+            fill(bgCol);
+            rect(0, 0, width, height);
+            
+            // Soft vignette
+            drawVignette(0.10);
+            
+            if (mixing) {
+                mix += 0.018; // Slightly faster transition for smoother journey
+                if (mix >= 1) {
+                    mix = 1;
+                    mixing = false;
+                    fromPalette = toPalette;
+                    
+                    // Auto-advance guided journey with proper timing
+                    if (journeyActive && journeyIndex < journeySequence.length - 1) {
+                        setTimeout(() => {
+                            if (journeyActive) { // Check if still active
+                                journeyIndex++;
+                                selectKey(journeySequence[journeyIndex], true);
+                            }
+                        }, 3500); // Longer pause between keys for appreciation
+                    } else if (journeyActive && journeyIndex >= journeySequence.length - 1) {
+                        journeyActive = false;
+                    }
+                }
+            }
+            
+            // Update and draw streams
+            for (let s of streams) {
+                s.step();
+                s.draw();
+            }
+            
+            // SWIRLS - Ratatouille fluid motion!
+            for (let sw of swirls) {
+                sw.step();
+                sw.draw();
+            }
+            
+            // Update explosions (unique per key transition)
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                explosions[i].update();
+                explosions[i].draw();
+                if (explosions[i].dead) explosions.splice(i, 1);
+            }
+            
+            // Shimmer boost - more magical!
+            shimmerBoost = lerp(shimmerBoost, 0.6, 0.04);
+            drawShimmer(shimmerBoost);
+        }
+
+        function computeBackgroundColor() {
+            // RICH, VIBRANT backgrounds - unique for each key!
+            const keyBackgrounds = {
+                'Eb major': { base: "#1a0a3e", mid: "#2d1b69", accent: "#481166" },
+                'C minor': { base: "#1a0a3e", mid: "#2d1b4e", accent: "#3D2B8C" },
+                'F minor': { base: "#1a0828", mid: "#2d1b4e", accent: "#5E17EB" },
+                'E minor': { base: "#1a0a14", mid: "#330a1f", accent: "#590d22" },
+                'E major': { base: "#3d2200", mid: "#5a3300", accent: "#8B5000" },
+                'A major': { base: "#3d2200", mid: "#5a2f00", accent: "#8B4500" },
+                'B minor': { base: "#2d1100", mid: "#4a1f00", accent: "#6a2f00" },
+                'B major': { base: "#3d3000", mid: "#5a4700", accent: "#7a5f00" },
+                'D major': { base: "#3a2f20", mid: "#5a4f40", accent: "#7a6f60" },
+                'G major': { base: "#0a2818", mid: "#1a3828", accent: "#2a4838" },
+                'G minor': { base: "#0a1828", mid: "#1a2838", accent: "#2a3848" },
+                'C major': { base: "#0a2838", mid: "#1a3848", accent: "#2a4858" },
+                'F major': { base: "#1a1a3e", mid: "#2a2a5e", accent: "#3a3a7e" },
+                'A minor': { base: "#0a1828", mid: "#1a2838", accent: "#2a3848" },
+                'D minor': { base: "#0a0a28", mid: "#1a1a38", accent: "#2a2a48" },
+                'Ab major': { base: "#3a0a28", mid: "#5a1a38", accent: "#7a2a48" },
+                'C# minor': { base: "#2d1f00", mid: "#4a3300", accent: "#6a4700" }
+            };
+            
+            const bg = keyBackgrounds[toPalette.key];
+            if (!bg) return color("#0a0612");
+            
+            const base = color(bg.base);
+            const mid = color(bg.mid);
+            const accent = color(bg.accent);
+            
+            // Multi-layer blending for RICH depth
+            const layer1 = lerpColor(base, mid, mix * 0.7);
+            return lerpColor(layer1, accent, mix * 0.4);
+        }
+
+        function drawVignette(strength) {
+            push();
+            noFill();
+            const steps = 8;
+            for (let i = 0; i < steps; i++) {
+                const p = i / (steps - 1);
+                const a = 255 * strength * p * 0.08;
+                stroke(0, a);
+                rectMode(CORNER);
+                rect(-p * 28, -p * 28, width + p * 56, height + p * 56, 40);
+            }
+            pop();
+        }
+
+        function drawShimmer(amount) {
+            if (amount <= 0.01) return;
+            
+            // RATATOUILLE FIREWORKS VIBES - explosive shimmer bursts!
+            const count = floor(lerp(25, 60, amount));
+            noStroke();
+            
+            for (let i = 0; i < count; i++) {
+                const x = random(width);
+                const y = random(height);
+                
+                // Varied sizes for depth - some big sparkles, some tiny
+                const r = random(1.0, 8.5);
+                
+                // Sample from current palette for cohesive color explosions
+                const paletteCol = color(random(toPalette.cols));
+                const c = lerpColor(paletteCol, color("#ffffff"), random(0.3, 0.7));
+                const a = 25 + 120 * amount * random(0.5, 1.2);
+                
+                fill(colorWithAlpha(c, a));
+                
+                // Draw main sparkle
+                circle(x, y, r);
+                
+                // Add glow halo for FIREWORK effect
+                if (random() > 0.7) {
+                    fill(colorWithAlpha(c, a * 0.3));
+                    circle(x, y, r * 2.5);
+                }
+            }
+            
+            // Extra special Eb major treatment - PURPLE FIREWORKS
+            if (toPalette.key === 'Eb major') {
+                for (let i = 0; i < 15; i++) {
+                    const x = random(width);
+                    const y = random(height);
+                    const purpleGlow = lerpColor(color("#D79AED"), color("#8437AB"), random());
+                    fill(colorWithAlpha(purpleGlow, 40 + 80 * amount));
+                    circle(x, y, random(3, 12));
+                }
+            }
+        }
+
+        class Stream {
+            constructor(i) {
+                this.pos = createVector(random(width), random(height));
+                this.prev = this.pos.copy();
+                this.seed = random(1000);
+                this.w = random(toPalette.major ? 8 : 12, toPalette.major ? 15 : 22);
+                this.a = random(12, 20);
+                this.ctrl = this.pos.copy();
+            }
+            
+            step() {
+                this.prev.set(this.pos);
+                
+                const t = frameCount * 0.002; // Slightly faster for more fluid feel
+                const freq = toPalette.major ? 0.0015 : 0.0012; // Tighter noise for liquid flow
+                const spin = toPalette.major ? 3.5 : 5.0; // More swirling
+                
+                const n = noise(this.pos.x * freq + this.seed, this.pos.y * freq + this.seed, t);
+                const ang = n * TWO_PI * spin;
+                
+                // Wavy, undulating motion like water
+                const spd = toPalette.major ? 1.3 : 1.0;
+                const wave = sin(frameCount * 0.02 + this.seed) * 0.5;
+                this.pos.x += cos(ang) * (spd + wave);
+                this.pos.y += sin(ang) * (spd + wave);
+                
+                // More pronounced curves for water-like ribbons
+                this.ctrl.x = lerp(this.ctrl.x, this.pos.x + cos(ang + PI / 2) * 35, 0.12);
+                this.ctrl.y = lerp(this.ctrl.y, this.pos.y + sin(ang + PI / 2) * 35, 0.12);
+                
+                const wrapped = this.wrap();
+                if (wrapped) this.prev.set(this.pos);
+            }
+            
+            wrap() {
+                let wrapped = false;
+                const padW = 90;
+                if (this.pos.x < -padW) { this.pos.x = width + padW; wrapped = true; }
+                if (this.pos.x > width + padW) { this.pos.x = -padW; wrapped = true; }
+                if (this.pos.y < -padW) { this.pos.y = height + padW; wrapped = true; }
+                if (this.pos.y > height + padW) { this.pos.y = -padW; wrapped = true; }
+                return wrapped;
+            }
+            
+            draw() {
+                const c = lerpColor(color(fromPalette.cols[floor(random(3))]), 
+                                    color(toPalette.cols[floor(random(3))]), mix);
+                
+                drawingContext.save();
+                drawingContext.shadowBlur = toPalette.major ? 25 : 35;
+                drawingContext.shadowColor = colorWithAlpha(c, this.a * 2.8);
+                
+                const alpha = this.a * (toPalette.major ? 0.75 : 0.95);
+                stroke(colorWithAlpha(c, alpha));
+                strokeWeight(this.w);
+                strokeCap(ROUND);
+                noFill();
+                
+                const wob = toPalette.major ? 8 : 12;
+                const x1 = this.prev.x + (noise(this.seed + 2, frameCount * 0.015) - 0.5) * wob;
+                const y1 = this.prev.y + (noise(this.seed + 6, frameCount * 0.015) - 0.5) * wob;
+                const x2 = this.pos.x + (noise(this.seed + 9, frameCount * 0.015) - 0.5) * wob;
+                const y2 = this.pos.y + (noise(this.seed + 12, frameCount * 0.015) - 0.5) * wob;
+                
+                // Always use curves for WATER-like flow
+                beginShape();
+                curveVertex(x1, y1);
+                curveVertex(x1, y1);
+                curveVertex(this.ctrl.x, this.ctrl.y);
+                curveVertex(x2, y2);
+                curveVertex(x2, y2);
+                endShape();
+                
+                drawingContext.restore();
+            }
+        }
+        
+        // SWIRLS - Ratatouille-style fluid spiraling motion!
+        class Swirl {
+            constructor(i) {
+                this.center = createVector(random(width), random(height));
+                this.angle = random(TWO_PI);
+                this.radius = random(80, 200);
+                this.speed = random(0.01, 0.03);
+                this.seed = random(1000);
+                this.points = [];
+                
+                // Create spiral points
+                for (let j = 0; j < 40; j++) {
+                    this.points.push({
+                        offset: j / 40,
+                        size: random(3, 12)
+                    });
+                }
+            }
+            
+            step() {
+                this.angle += this.speed;
+                
+                // Drift the center slowly
+                const t = frameCount * 0.001;
+                this.center.x += (noise(this.seed, t) - 0.5) * 0.8;
+                this.center.y += (noise(this.seed + 100, t) - 0.5) * 0.8;
+                
+                // Wrap
+                if (this.center.x < -100) this.center.x = width + 100;
+                if (this.center.x > width + 100) this.center.x = -100;
+                if (this.center.y < -100) this.center.y = height + 100;
+                if (this.center.y > height + 100) this.center.y = -100;
+            }
+            
+            draw() {
+                noStroke();
+                
+                for (let p of this.points) {
+                    const a = this.angle + p.offset * TWO_PI * 3;
+                    const r = this.radius * p.offset;
+                    const x = this.center.x + cos(a) * r;
+                    const y = this.center.y + sin(a) * r;
+                    
+                    const c = lerpColor(
+                        color(fromPalette.cols[floor(random(3))]), 
+                        color(toPalette.cols[floor(random(3))]),
+                        mix
+                    );
+                    
+                    const alpha = 15 + 25 * p.offset;
+                    fill(colorWithAlpha(c, alpha));
+                    circle(x, y, p.size * (0.5 + 0.5 * p.offset));
+                }
+            }
+        }
+        
+        // EXPLOSION - Firework burst on key change!
+        class Explosion {
+            constructor(x, y, palette) {
+                this.x = x;
+                this.y = y;
+                this.particles = [];
+                this.life = 0;
+                this.maxLife = 80;
+                this.dead = false;
+                
+                // Create explosion particles
+                for (let i = 0; i < 30; i++) {
+                    const angle = random(TWO_PI);
+                    const speed = random(2, 8);
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: cos(angle) * speed,
+                        vy: sin(angle) * speed,
+                        size: random(4, 12),
+                        color: random(palette.cols)
+                    });
+                }
+            }
+            
+            update() {
+                this.life++;
+                if (this.life > this.maxLife) this.dead = true;
+                
+                for (let p of this.particles) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vx *= 0.98;
+                    p.vy *= 0.98;
+                    p.vy += 0.1; // Gravity
+                }
+            }
+            
+            draw() {
+                const fade = 1 - (this.life / this.maxLife);
+                noStroke();
+                
+                for (let p of this.particles) {
+                    const c = color(p.color);
+                    fill(colorWithAlpha(c, 150 * fade));
+                    circle(p.x, p.y, p.size * fade);
+                    
+                    // Glow
+                    fill(colorWithAlpha(c, 50 * fade));
+                    circle(p.x, p.y, p.size * 2.5 * fade);
+                }
+            }
+        }
+
+        function colorWithAlpha(c, a) {
+            const cc = color(c);
+            cc.setAlpha(a);
+            return cc;
+        }
+
+        // UI Functions
+        function enterExplore() {
+            document.getElementById('landing').classList.add('hidden');
+            setTimeout(() => {
+                document.getElementById('explore-ui').classList.add('active');
+                createKeyCircle();
+                createCustomPanel();
+            }, 500);
+        }
+
+        function showAbout() {
+            document.getElementById('landing').classList.add('hidden');
+            document.getElementById('about-page').classList.add('active');
+        }
+
+        function hideAbout() {
+            document.getElementById('about-page').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('landing').classList.remove('hidden');
+            }, 300);
+        }
+
+        function createKeyCircle() {
+            const container = document.getElementById('key-circle');
+            const radius = 220;
+            const centerX = 250;
+            const centerY = 250;
+            
+            palettes.forEach((p, i) => {
+                const angle = (i / palettes.length) * TWO_PI - HALF_PI;
+                const x = centerX + cos(angle) * radius;
+                const y = centerY + sin(angle) * radius;
+                
+                const dot = document.createElement('div');
+                dot.className = 'key-dot';
+                if (i === 0) dot.classList.add('active');
+                dot.style.left = x + 'px';
+                dot.style.top = y + 'px';
+                dot.style.background = `linear-gradient(135deg, ${p.cols[0]}, ${p.cols[2]})`;
+                dot.onclick = () => selectKey(i);
+                
+                const label = document.createElement('div');
+                label.className = 'key-label';
+                label.textContent = p.key;
+                const labelOffset = 30;
+                label.style.left = (x + cos(angle) * labelOffset) + 'px';
+                label.style.top = (y + sin(angle) * labelOffset) + 'px';
+                label.style.transform = 'translate(-50%, -50%)';
+                
+                container.appendChild(dot);
+                container.appendChild(label);
+            });
+        }
+
+        function createCustomPanel() {
+            const container = document.getElementById('custom-colors');
+            // Show ALL keys in custom color picker
+            palettes.forEach((p, i) => {
+                const row = document.createElement('div');
+                row.className = 'color-picker-row';
+                
+                const label = document.createElement('label');
+                label.textContent = p.key;
+                
+                const picker = document.createElement('input');
+                picker.type = 'color';
+                picker.value = p.cols[1];
+                picker.onchange = (e) => updateCustomColor(i, e.target.value);
+                
+                row.appendChild(label);
+                row.appendChild(picker);
+                container.appendChild(row);
+            });
+        }
+
+        function updateCustomColor(index, newColor) {
+            // Create gradient variations of the selected color
+            const baseColor = color(newColor);
+            const lighter = lerpColor(baseColor, color(255), 0.3);
+            const darker = lerpColor(baseColor, color(0), 0.3);
+            
+            palettes[index].cols = [
+                lighter.toString('#rrggbb'),
+                newColor,
+                darker.toString('#rrggbb')
+            ];
+            
+            updateKeyCircleColors();
+        }
+
+        function updateKeyCircleColors() {
+            const dots = document.querySelectorAll('.key-dot');
+            dots.forEach((dot, i) => {
+                dot.style.background = `linear-gradient(135deg, ${palettes[i].cols[0]}, ${palettes[i].cols[2]})`;
+            });
+        }
+
+        function resetToOriginal() {
+            palettes = JSON.parse(JSON.stringify(originalPalettes));
+            updateKeyCircleColors();
+            const pickers = document.querySelectorAll('#custom-colors input[type="color"]');
+            pickers.forEach((picker, i) => {
+                picker.value = palettes[i].cols[1];
+            });
+        }
+
+        function selectKey(index) {
+            // Don't allow manual selection during guided journey unless it's from the journey itself
+            const fromJourney = arguments[1];
+            if (journeyActive && !fromJourney) return;
+            
+            // If waiting for blend slot, fill it instead
+            if (waitingForBlendSlot !== -1) {
+                fillBlendSlot(index);
+                return;
+            }
+            
+            // Spawn explosion at random location for visual pop!
+            if (!fromJourney && currentMode !== 'progression') {
+                const x = random(width * 0.3, width * 0.7);
+                const y = random(height * 0.3, height * 0.7);
+                explosions.push(new Explosion(x, y, palettes[index]));
+            }
+            
+            // In progression mode, add to progression instead of switching
+            if (currentMode === 'progression' && !progressionPlaying && !fromJourney) {
+                addToProgression(index);
+                return;
+            }
+            
+            currentIndex = index;
+            toPalette = palettes[index];
+            mix = 0;
+            mixing = true;
+            
+            updateDisplay();
+            updateActiveButton();
+        }
+
+        function updateDisplay() {
+            document.getElementById('key-display').textContent = toPalette.key;
+            document.getElementById('palette-display').textContent = toPalette.name;
+            document.getElementById('key-type').textContent = toPalette.major ? 
+                'vibrant & shiny' : 'dark & rich';
+        }
+
+        function updateActiveButton() {
+            document.querySelectorAll('.key-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentIndex);
+            });
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            const journeyPanel = document.getElementById('journey-panel');
+            const progressionPanel = document.getElementById('progression-panel');
+            
+            journeyPanel.classList.remove('active');
+            progressionPanel.classList.remove('active');
+            
+            if (mode === 'guided') {
+                journeyPanel.classList.add('active');
+            } else if (mode === 'progression') {
+                progressionPanel.classList.add('active');
+            } else {
+                journeyActive = false;
+            }
+        }
+        
+        function addToProgression(index) {
+            if (progression.length >= 8) return; // Max 8 keys
+            progression.push(index);
+            updateProgressionDisplay();
+        }
+        
+        function updateProgressionDisplay() {
+            const display = document.getElementById('progression-display');
+            display.innerHTML = '';
+            
+            if (progression.length === 0) {
+                display.innerHTML = '<span style="color: rgba(255, 255, 255, 0.4); font-size: 13px;">Your progression will appear here...</span>';
+                return;
+            }
+            
+            progression.forEach((idx, i) => {
+                const chip = document.createElement('div');
+                chip.className = 'progression-chip';
+                const pal = palettes[idx];
+                chip.style.setProperty('--chip-color-1', pal.cols[0]);
+                chip.style.setProperty('--chip-color-2', pal.cols[2]);
+                chip.innerHTML = `
+                    ${pal.key}
+                    <span class="remove" onclick="removeFromProgression(${i})">×</span>
+                `;
+                display.appendChild(chip);
+            });
+        }
+        
+        function removeFromProgression(i) {
+            progression.splice(i, 1);
+            updateProgressionDisplay();
+        }
+        
+        function clearProgression() {
+            progression = [];
+            updateProgressionDisplay();
+        }
+        
+        function playProgression() {
+            if (progression.length === 0) return;
+            
+            progressionPlaying = true;
+            let i = 0;
+            
+            function playNext() {
+                if (i >= progression.length) {
+                    progressionPlaying = false;
+                    return;
+                }
+                
+                selectKey(progression[i], true);
+                i++;
+                setTimeout(playNext, 2500);
+            }
+            
+            playNext();
+        }
+        
+        function goHome() {
+            document.getElementById('explore-ui').classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('landing').classList.remove('hidden');
+            }, 500);
+        }
+        
+        function toggleBlend() {
+            blendMode = !blendMode;
+            document.getElementById('blend-panel').classList.toggle('active');
+        }
+        
+        function addBlendSlot(slotIndex) {
+            if (blendSlots[slotIndex] !== null) return; // Already filled
+            waitingForBlendSlot = slotIndex;
+            // User will click a key next to fill this slot
+        }
+        
+        function fillBlendSlot(keyIndex) {
+            if (waitingForBlendSlot === -1) return;
+            
+            blendSlots[waitingForBlendSlot] = keyIndex;
+            updateBlendDisplay();
+            waitingForBlendSlot = -1;
+        }
+        
+        function updateBlendDisplay() {
+            const slots = document.querySelectorAll('.blend-slot');
+            slots.forEach((slot, i) => {
+                if (blendSlots[i] !== null) {
+                    const pal = palettes[blendSlots[i]];
+                    slot.className = 'blend-slot filled';
+                    slot.style.background = `linear-gradient(135deg, ${pal.cols[0]}, ${pal.cols[2]})`;
+                    slot.innerHTML = `
+                        <span class="key-label-small">${pal.key}</span>
+                        <div class="remove-slot" onclick="event.stopPropagation(); removeBlendSlot(${i})">×</div>
+                    `;
+                } else {
+                    slot.className = 'blend-slot';
+                    slot.style.background = '';
+                    slot.innerHTML = `<span class="placeholder">+ Key ${i + 1}</span>`;
+                }
+            });
+        }
+        
+        function removeBlendSlot(slotIndex) {
+            blendSlots[slotIndex] = null;
+            updateBlendDisplay();
+        }
+        
+        function clearBlend() {
+            blendSlots = [null, null, null, null];
+            waitingForBlendSlot = -1;
+            updateBlendDisplay();
+        }
+        
+        function activateBlend() {
+            const filled = blendSlots.filter(s => s !== null);
+            if (filled.length < 2) return; // Need at least 2 colors
+            
+            // Create blended palette
+            const blendedPalette = {
+                key: filled.map(i => palettes[i].key).join(' + '),
+                name: 'custom blend',
+                cols: [],
+                major: true
+            };
+            
+            // Average the colors
+            for (let c = 0; c < 3; c++) {
+                let r = 0, g = 0, b = 0;
+                for (let idx of filled) {
+                    const col = color(palettes[idx].cols[c]);
+                    r += red(col);
+                    g += green(col);
+                    b += blue(col);
+                }
+                r /= filled.length;
+                g /= filled.length;
+                b /= filled.length;
+                blendedPalette.cols.push(color(r, g, b).toString('#rrggbb'));
+            }
+            
+            // Transition to blended palette
+            toPalette = blendedPalette;
+            mix = 0;
+            mixing = true;
+            
+            // Create explosion
+            const x = random(width * 0.3, width * 0.7);
+            const y = random(height * 0.3, height * 0.7);
+            explosions.push(new Explosion(x, y, blendedPalette));
+            
+            updateDisplay();
+        }
+
+        function toggleCustom() {
+            customActive = !customActive;
+            document.getElementById('custom-panel').classList.toggle('active');
+        }
+
+        function startJourney(type) {
+            journeyActive = true;
+            journeyIndex = 0;
+            
+            const journeys = {
+                dawn: [14, 13, 8, 7, 6, 0],  // dark blues → creams → yellows → purples
+                twilight: [7, 6, 4, 1, 13, 14],  // yellows → ambers → purples → blues
+                spectrum: [0, 1, 3, 4, 6, 7, 11, 13, 14]  // full rainbow
+            };
+            
+            journeySequence = journeys[type];
+            selectKey(journeySequence[0], true); // Pass true to allow selection during journey
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+    </script>
+</body>
+</html>
